@@ -57,8 +57,8 @@ When you run repo init, it creates/updates local files in that repo:
 - `conductor/skills/catalog.md` (copied from the global catalog; non-destructive)
 - `AGENTS.md` rule line:
   - `Always run $conductor-status before doing anything else.`
-- `.gitignore` line:
-  - `conductor/`
+
+Repo init leaves `.gitignore` unchanged. The generated `conductor/` directory is normal Conductor project state and can be tracked by Git.
 
 ### Why there are two styleguide locations?
 
@@ -75,8 +75,7 @@ This setup is intentionally non-destructive:
   - If missing, create it.
   - If present, append the required conductor-status rule only if missing.
 - For `.gitignore`:
-  - If missing, create it.
-  - If present, append `conductor/` only if missing.
+  - It is not created or modified by repo init.
 
 In short: append-only when needed, no destructive replacement.
 
@@ -197,7 +196,6 @@ your-repo/
     skills/
       catalog.md
   AGENTS.md
-  .gitignore
 ```
 
 Global install on Windows:
