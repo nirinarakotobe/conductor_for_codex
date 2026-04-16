@@ -48,4 +48,4 @@ Local changelog (global Codex home):
 ## 3.0 NOTES
 
 - Codex cannot directly update Gemini extensions. This workflow emulates updates by syncing prompt content.
-- Keep Codex-specific rules intact (Conductor local-only, no auto-commit unless explicitly asked).
+- Keep Codex-specific installation paths intact while preserving upstream Conductor semantics: `conductor/` is normal project state and may be tracked/committed by Conductor workflows.

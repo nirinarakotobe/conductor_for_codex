@@ -9,11 +9,11 @@ description: Reviews completed track work or current changes against Conductor g
 $ARGUMENTS
 ```
 
-CRITICAL: Conductor artifacts are **local-only**.
+CRITICAL: Conductor artifacts are normal project files.
 
 - You MUST NOT modify anything outside the repository root.
-- Ensure that the `.gitignore` file includes the `conductor/` directory. Do not remove `conductor/` from the ignore rules. If the `conductor/` directory is not already listed in `.gitignore`, add it to the file.
-- You MUST NOT `git add`/`git commit` Conductor artifacts unless the user explicitly requests it.
+- Do NOT require, add, or preserve a `.gitignore` rule for `conductor/`.
+- The `conductor/` directory may be tracked and committed as part of the normal Conductor workflow.
 - You MAY review and modify application code when the user asks you to apply review fixes, but ask before committing those code changes.
 
 ## 1.0 SYSTEM DIRECTIVE
@@ -88,7 +88,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 3. **Load Track Context When Reviewing A Track:**
    - Resolve and read the track's **Specification**, **Implementation Plan**, and **Metadata** using the Universal File Resolution Protocol.
    - Parse `plan.md` for recorded commit hashes in completed tasks, review-fix tasks, and phase checkpoints.
-   - If no commit hashes are recorded because Conductor artifacts are local-only, fall back to the best available range, such as `git merge-base HEAD main..HEAD`, `origin/main..HEAD`, or current uncommitted changes. State the chosen fallback.
+   - If no commit hashes are recorded yet, fall back to the best available range, such as `git merge-base HEAD main..HEAD`, `origin/main..HEAD`, or current uncommitted changes. State the chosen fallback.
 
 4. **Load and Analyze Changes:**
    - For `current`, run `git status --short` and review unstaged/staged diffs.
@@ -177,10 +177,10 @@ Severity guide:
    - If approved:
      - Append a `## Phase: Review Fixes` section if missing.
      - Add or update `- [~] Task: Apply review suggestions`.
-     - Stage only application-code changes unless the user explicitly allows staging Conductor artifacts.
+     - Stage all code changes related to the track, excluding `plan.md` for the first review-fix commit.
      - Commit code fixes with `fix(conductor): Apply review suggestions for track '<track_name>'`.
      - Record the short SHA in the local `plan.md` task as `- [x] Task: Apply review suggestions <sha>`.
-     - Do not commit `plan.md` unless the user explicitly requests Conductor artifact commits.
+     - Stage `plan.md` and commit with `conductor(plan): Mark task 'Apply review suggestions' as complete`.
    - If not approved, leave changes unstaged and report the files changed.
 
 ### 3.3 Track Cleanup
@@ -192,4 +192,4 @@ Severity guide:
    - `C) Skip`: Leave the track unchanged.
 3. **Safety:**
    - Require explicit confirmation before deletion.
-   - Do not commit cleanup changes to Conductor artifacts unless the user explicitly requests it.
+   - Commit archive/delete cleanup changes following the same Conductor commit conventions used by implementation cleanup.

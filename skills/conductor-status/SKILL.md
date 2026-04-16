@@ -9,11 +9,11 @@ description: Displays the current progress of the project
 $ARGUMENTS
 ```
 
-CRITICAL: Conductor artifacts are **local-only**.
+CRITICAL: Conductor artifacts are normal project files.
 
 - You MUST NOT modify anything outside the repository root.
-- Ensure that the `.gitignore` file includes the `conductor/` directory. Do not remove `conductor/` from the ignore rules. If the `conductor/` directory is not already listed in `.gitignore`, add it to the file.
-- You MUST NOT `git add`/`git commit` Conductor artifacts unless the user explicitly requests it.
+- Do NOT require, add, or preserve a `.gitignore` rule for `conductor/`.
+- The `conductor/` directory may be tracked and committed as part of the normal Conductor workflow.
 
 ## 1.0 SYSTEM DIRECTIVE
 

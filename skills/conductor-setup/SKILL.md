@@ -9,11 +9,11 @@ description: Scaffolds the project and sets up the Conductor environment
 $ARGUMENTS
 ```
 
-CRITICAL: Conductor artifacts are **local-only**.
+CRITICAL: Conductor artifacts are normal project files.
 
 - You MUST NOT modify anything outside the repository root.
-- Ensure that the `.gitignore` file includes the `conductor/` directory. Do not remove `conductor/` from the ignore rules. If the `conductor/` directory is not already listed in `.gitignore`, add it to the file.
-- You MUST NOT `git add`/`git commit` Conductor artifacts unless the user explicitly requests it.
+- Do NOT require, add, or preserve a `.gitignore` rule for `conductor/`.
+- The `conductor/` directory may be tracked and committed as part of the normal Conductor workflow.
 
 ## 1.0 SYSTEM DIRECTIVE
 
@@ -537,5 +537,5 @@ CRITICAL: When determining model complexity, favor deep reasoning. Context-drive
 ### 3.4 Final Announcement
 
 1. **Announce Completion:** After the track has been created, announce that the project setup and initial track generation are complete.
-2. **Save Conductor Files:** Conductor artifacts are local-only in this Codex adaptation. Do not stage or commit `conductor/` unless the user explicitly requests it.
+2. **Save Conductor Files:** Add and commit all Conductor files with the commit message `conductor(setup): Add conductor setup files`.
 3. **Next Steps:** Inform the user that they can now begin work by running `$conductor-implement`.

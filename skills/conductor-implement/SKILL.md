@@ -9,11 +9,11 @@ description: Executes the tasks defined in the specified track's plan
 $ARGUMENTS
 ```
 
-CRITICAL: Conductor artifacts are **local-only**.
+CRITICAL: Conductor artifacts are normal project files.
 
 - You MUST NOT modify anything outside the repository root.
-- Ensure that the `.gitignore` file includes the `conductor/` directory. Do not remove `conductor/` from the ignore rules. If the `conductor/` directory is not already listed in `.gitignore`, add it to the file.
-- You MUST NOT `git add`/`git commit` Conductor artifacts unless the user explicitly requests it.
+- Do NOT require, add, or preserve a `.gitignore` rule for `conductor/`.
+- The `conductor/` directory may be tracked and committed as part of the normal Conductor workflow.
 
 ## 1.0 SYSTEM DIRECTIVE
 
@@ -103,7 +103,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 5. **Finalize Track:**
     - After all tasks in the track's local **Implementation Plan** are completed, you MUST update the track's status in the **Tracks Registry**.
     - This requires finding the specific heading for the track (e.g., `## [~] Track: <Description>`) and replacing it with the completed status (e.g., `## [x] Track: <Description>`).
-    - Because Conductor artifacts are local-only in this Codex adaptation, do not stage or commit the **Tracks Registry** unless the user explicitly requests Conductor artifact commits.
+    - **Commit Changes:** Stage the **Tracks Registry** file and commit with the message `chore(conductor): Mark track '<track_description>' as complete`.
     - Announce that the track is fully complete and the tracks file has been updated.
 
 ---
@@ -150,8 +150,8 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 6. **Final Report:** Announce the completion of the synchronization process and provide a summary of the actions taken.
     - **Construct the Message:** Based on the records of which files were changed, construct a summary message.
     - **Commit Changes:**
-      - Because these files are Conductor artifacts in this Codex adaptation, do not stage or commit them unless the user explicitly requests Conductor artifact commits.
-      - If the user explicitly requests a commit, use: `docs(conductor): Synchronize docs for track '<track_description>'`.
+      - If any files were changed (**Product Definition**, **Tech Stack**, or **Product Guidelines**), you MUST stage them and commit them.
+      - **Commit Message:** `docs(conductor): Synchronize docs for track '<track_description>'`
     - **Example (if Product Definition was changed, but others were not):**
       > "Documentation synchronization is complete.
       >
@@ -185,14 +185,14 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
       i. **Create Archive Directory:** Check for the existence of `conductor/archive/`. If it does not exist, create it.
       ii. **Archive Track Folder:** Move the track's folder from its current location (resolved via the **Tracks Directory**) to `conductor/archive/<track_id>`.
       iii. **Remove from Tracks File:** Read the content of the **Tracks Registry** file, remove the entire section for the completed track (the part that starts with `---` and contains the track description), and write the modified content back to the file.
-      iv. **Commit Changes:** Do not commit Conductor artifacts unless the user explicitly requests it.
-      v. **Announce Success:** Announce: "Track '<track_description>' has been successfully archived locally."
+      iv. **Commit Changes:** Stage the **Tracks Registry** file and `conductor/archive/`. Commit with the message `chore(conductor): Archive track '<track_description>'`.
+      v. **Announce Success:** Announce: "Track '<track_description>' has been successfully archived."
     - **If user chooses "C" (Delete):**
       i. **CRITICAL WARNING:** Before proceeding, you MUST ask for a final confirmation due to the irreversible nature of the action. > "WARNING: This will permanently delete the track folder and all its contents. This action cannot be undone. Are you sure you want to proceed? (yes/no)"
       ii. **Handle Confirmation:** - **If 'yes'**:
       a. **Delete Track Folder:** Resolve the **Tracks Directory** and permanently delete the track's folder from `<Tracks Directory>/<track_id>`.
       b. **Remove from Tracks File:** Read the content of the **Tracks Registry** file, remove the entire section for the completed track, and write the modified content back to the file.
-      c. **Commit Changes:** Do not commit Conductor artifacts unless the user explicitly requests it.
+      c. **Commit Changes:** Stage the **Tracks Registry** file and the deletion of the track directory. Commit with the message `chore(conductor): Delete track '<track_description>'`.
       d. **Announce Success:** Announce: "Track '<track_description>' has been permanently deleted." - **If 'no' (or anything else)**:
       a. **Announce Cancellation:** Announce: "Deletion cancelled. The track has not been changed."
     - **If user chooses "D" (Skip) or provides any other input:**

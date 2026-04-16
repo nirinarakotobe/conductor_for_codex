@@ -9,11 +9,11 @@ description: Plans a track, generates track-specific spec documents and updates 
 $ARGUMENTS
 ```
 
-CRITICAL: Conductor artifacts are **local-only**.
+CRITICAL: Conductor artifacts are normal project files.
 
 - You MUST NOT modify anything outside the repository root.
-- Ensure that the `.gitignore` file includes the `conductor/` directory. Do not remove `conductor/` from the ignore rules. If the `conductor/` directory is not already listed in `.gitignore`, add it to the file.
-- You MUST NOT `git add`/`git commit` Conductor artifacts unless the user explicitly requests it.
+- Do NOT require, add, or preserve a `.gitignore` rule for `conductor/`.
+- The `conductor/` directory may be tracked and committed as part of the normal Conductor workflow.
 
 ## 1.0 SYSTEM DIRECTIVE
 
@@ -199,5 +199,9 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
       (Replace `<Relative Track Path>` with the path to the track directory relative to the **Tracks Registry** file location.)
 
-7. **Announce Completion:** Inform the user:
+7. **Commit Track Artifacts:**
+    - Stage the **Tracks Registry** and the new track directory.
+    - Commit with the message `chore(conductor): Add new track '<track_description>'`.
+
+8. **Announce Completion:** Inform the user:
     > "New track '<track_id>' has been created and added to the tracks file. You can now start implementation by running `$conductor-implement`."
