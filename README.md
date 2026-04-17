@@ -40,12 +40,15 @@ Global install (user profile, offline):
   - `update-conductor`
 - Templates in global Codex home:
   - Windows: `%USERPROFILE%\.codex\conductor\templates\...`
+  - macOS: `$HOME/.codex/conductor/templates/...`
   - Linux: `$HOME/.codex/conductor/templates/...`
 - Global init command:
   - Windows: `%USERPROFILE%\.codex\bin\codex_conductor_init.cmd`
+  - macOS: `$HOME/.local/bin/codex_conductor_init`
   - Linux: `$HOME/.local/bin/codex_conductor_init`
 - Skill recommendation catalog:
   - Windows: `%USERPROFILE%\.codex\conductor\skills\catalog.md`
+  - macOS: `$HOME/.codex/conductor/skills/catalog.md`
   - Linux: `$HOME/.codex/conductor/skills/catalog.md`
 
 ## What Happens in a Repo
@@ -85,6 +88,11 @@ Windows:
 
 - PowerShell 5.1+
 
+macOS:
+
+- `bash`
+- A shell that can run `$HOME/.local/bin/codex_conductor_init` after install, such as `zsh` or `bash`
+
 Linux:
 
 - `bash`
@@ -121,6 +129,33 @@ Flags:
   - Use this only if you intentionally manage PATH yourself.
   - Recommended default: do not pass `-SkipPathUpdate`, so `codex_conductor_init.cmd` works globally.
 
+## Install on macOS
+
+Run from the folder containing `conductor_for_codex.sh`:
+
+```bash
+bash ./conductor_for_codex.sh
+```
+
+Advanced override:
+
+```bash
+CODEX_HOME="$HOME/.codex" BIN_DIR="$HOME/.local/bin" NO_PATH_HINT=0 bash ./conductor_for_codex.sh
+```
+
+Variables:
+
+- `CODEX_HOME`: custom global Codex home directory.
+- `BIN_DIR`: custom install path for `codex_conductor_init`.
+- `NO_PATH_HINT=0`: print PATH hint if needed.
+
+If `$HOME/.local/bin` is not already on your PATH, add it to your shell profile. For the default macOS shell:
+
+```zsh
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
 ## Install on Linux
 
 ```bash
@@ -144,6 +179,9 @@ Variables:
 - Windows: admin is not required.
   - Installs to your user profile.
   - Updates user PATH only (not machine PATH).
+- macOS: sudo is not required.
+  - Installs under `$HOME`.
+  - Does not modify your shell profile automatically.
 - Linux: sudo is not required.
   - Installs under `$HOME`.
 
@@ -152,6 +190,7 @@ Variables:
 After global install, open any repo directory and run:
 
 - Windows: `codex_conductor_init.cmd`
+- macOS: `codex_conductor_init`
 - Linux: `codex_conductor_init`
 
 If PowerShell policy blocks `.ps1` resolution, use:
@@ -217,6 +256,23 @@ Global install on Windows:
 ```
 
 Global install on Linux:
+
+```text
+$HOME/.codex/
+  skills/
+    (same 7 skill folders)
+  conductor/
+    templates/
+      workflow.md
+      code_styleguides/
+        *.md
+    skills/
+      catalog.md
+$HOME/.local/bin/
+  codex_conductor_init
+```
+
+Global install on macOS:
 
 ```text
 $HOME/.codex/
