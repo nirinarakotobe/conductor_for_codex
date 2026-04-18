@@ -74,6 +74,7 @@ This setup is intentionally non-destructive:
 
 - It never deletes your project files.
 - It never overwrites existing repo skill folders under `.codex/skills/<skill>`.
+- During global install, it may replace an older generated `codex_conductor_init` script if that script still contains the obsolete `.gitignore` rule for `conductor/`.
 - For `AGENTS.md`:
   - If missing, create it.
   - If present, append the required conductor-status rule only if missing.
@@ -294,6 +295,7 @@ $HOME/.local/bin/
 Rerunning installer or repo init is safe and idempotent.
 
 - Existing targets are preserved.
+- Known legacy generated init scripts are refreshed if they still add `conductor/` to `.gitignore`.
 - Missing required lines are appended once.
 - Duplicate required lines are avoided.
 

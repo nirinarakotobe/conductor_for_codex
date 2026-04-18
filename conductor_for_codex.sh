@@ -88,10 +88,22 @@ else
   echo "  Missing bundled skill catalog (skipping): $BUNDLED_SKILLS_ROOT/catalog.md"
 fi
 
-# Install init command only if missing
+# Install init command. Preserve custom existing scripts, but refresh known legacy
+# generated scripts that still modified .gitignore.
+install_init=0
 if [[ -e "$BIN_DIR/codex_conductor_init" ]]; then
-  echo "  Exists, skipping: $BIN_DIR/codex_conductor_init"
+  if grep -q "Ensured .gitignore contains conductor/" "$BIN_DIR/codex_conductor_init" \
+    || grep -q "Ensure conductor/ ignore exists" "$BIN_DIR/codex_conductor_init"; then
+    install_init=1
+    echo "  Updating legacy init script: $BIN_DIR/codex_conductor_init"
+  else
+    echo "  Exists, skipping: $BIN_DIR/codex_conductor_init"
+  fi
 else
+  install_init=1
+fi
+
+if [[ "$install_init" == "1" ]]; then
   cat >"$BIN_DIR/codex_conductor_init" <<'INIT_EOF'
 #!/usr/bin/env bash
 # codex_conductor_init
@@ -176,7 +188,7 @@ fi
 echo "  Left .gitignore unchanged"
 INIT_EOF
   chmod +x "$BIN_DIR/codex_conductor_init"
-  echo "  Created: $BIN_DIR/codex_conductor_init"
+  echo "  Installed: $BIN_DIR/codex_conductor_init"
 fi
 
 if [[ "$NO_PATH_HINT" != "1" ]]; then

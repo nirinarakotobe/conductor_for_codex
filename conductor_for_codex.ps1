@@ -247,9 +247,18 @@ exit /b %ERRORLEVEL%
 $initPs1Path = Join-Path $BinDir 'codex_conductor_init.ps1'
 $initCmdPath = Join-Path $BinDir 'codex_conductor_init.cmd'
 
-if (-not (Test-Path $initPs1Path)) {
+$shouldInstallInitPs1 = -not (Test-Path $initPs1Path)
+if (-not $shouldInstallInitPs1) {
+  $existingInit = Get-Content -Raw -Path $initPs1Path
+  if ($existingInit -match 'Ensured \.gitignore contains conductor/' -or $existingInit -match 'conductor/ ignore exists') {
+    $shouldInstallInitPs1 = $true
+    Write-Host "  Updating legacy init script: $initPs1Path" -ForegroundColor Yellow
+  }
+}
+
+if ($shouldInstallInitPs1) {
   Set-Content -Path $initPs1Path -Value $initPs1 -Encoding UTF8
-  Write-Host "  Created: $initPs1Path" -ForegroundColor Green
+  Write-Host "  Installed: $initPs1Path" -ForegroundColor Green
 } else {
   Write-Host "  Exists, skipping: $initPs1Path" -ForegroundColor Gray
 }
