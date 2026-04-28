@@ -1,301 +1,204 @@
-# conductor_for_codex
+# Conductor for Models
 
-Portable Conductor-style bootstrap for Codex, using transparent plain markdown skill files.
+Conductor for Models is a multi-platform port of the original Gemini CLI Conductor project.
+
+It preserves Conductor's context-driven lifecycle and artifact model while adapting the integration layer for:
+
+- Codex
+- Claude Code
+- Antigravity
+- OpenCode
+
+The original Gemini CLI Conductor implementation remains the behavioral reference. When there is a conflict between adapter wording and the original lifecycle, prefer the original lifecycle unless the target platform cannot support it directly.
 
 ## Start Here
 
-If you are new to Conductor, read [`what_is_conductor.md`](what_is_conductor.md) first.
+If you are new to Conductor, read [`what_is_conductor.md`](what_is_conductor.md).
 
-## Install Once, Use Everywhere
+For migration context, read [`docs/migration.md`](docs/migration.md).
 
-This repo uses a two-step model:
+For the initial comparison summary, read [`docs/inspection-summary.md`](docs/inspection-summary.md).
 
-1. Run one installer script once per machine/user (global install).
-2. Run `codex_conductor_init` inside any repo you want to initialize (repo init).
+## Architecture
 
-The global install gives you reusable skills and a global init command.
-The repo init adds only local project files needed for Conductor-style workflow.
+```text
+conductor-core/
+  context/                  # Original Conductor context and file resolution rules
+  lifecycle/gemini-commands/ # Original Gemini command prompts for fidelity checks
+  policies/                 # Original Conductor policy reference
+  schema/                   # Portable track metadata schema
+  skills/                   # Shared skill catalog
+  templates/                # Shared workflow and code style templates
+adapters/
+  codex/                    # Codex skills, AGENTS guidance, installers
+  claude/                   # CLAUDE.md and Claude Code skills
+  antigravity/              # .agent workflows, skills, and rules
+  opencode/                 # AGENTS.md, commands, and agents
+skills/                     # Backward-compatible root Codex skills
+templates/                  # Backward-compatible root shared templates
+```
 
-## Transparency
+`conductor-core/` is the shared contract. Each adapter provides a platform-native way to run the same lifecycle:
 
-This repo includes:
+1. `setup`
+2. `newTrack`
+3. `implement`
+4. `status`
+5. `review`
+6. `revert`
 
-- Skill content as plain markdown files under `skills/`
-- Conductor templates under `templates/` (workflow + code style guides)
+## Conductor Artifacts
 
-- No encoded/base64 skill payloads are used for installation.
-- Both installers copy from `skills/<name>/SKILL.md` so users can inspect everything before running.
+Conductor state lives in normal project files:
 
-## What Gets Installed
+```text
+conductor/
+  index.md
+  product.md
+  product-guidelines.md
+  tech-stack.md
+  workflow.md
+  tracks.md
+  code_styleguides/
+  tracks/
+    <track_id>/
+      index.md
+      spec.md
+      plan.md
+      metadata.json
+```
 
-Global install (user profile, offline):
+Do not add `conductor/` to ignore rules by default. These artifacts are part of the project workflow and may be tracked.
 
-- Skills in global Codex home:
-  - `conductor-setup`
-  - `conductor-status`
-  - `conductor-implement`
-  - `conductor-newTrack`
-  - `conductor-review`
-  - `conductor-revert`
-  - `update-conductor`
-- Templates in global Codex home:
-  - Windows: `%USERPROFILE%\.codex\conductor\templates\...`
-  - macOS: `$HOME/.codex/conductor/templates/...`
-  - Linux: `$HOME/.codex/conductor/templates/...`
-- Global init command:
-  - Windows: `%USERPROFILE%\.codex\bin\codex_conductor_init.cmd`
-  - macOS: `$HOME/.local/bin/codex_conductor_init`
-  - Linux: `$HOME/.local/bin/codex_conductor_init`
-- Skill recommendation catalog:
-  - Windows: `%USERPROFILE%\.codex\conductor\skills\catalog.md`
-  - macOS: `$HOME/.codex/conductor/skills/catalog.md`
-  - Linux: `$HOME/.codex/conductor/skills/catalog.md`
+## Support Matrix
 
-## What Happens in a Repo
+| Platform | Status | Native mapping | Notes |
+| --- | --- | --- | --- |
+| Codex | Supported | `AGENTS.md`, skills, installers | Existing root Codex path remains compatible. |
+| Claude Code | Adapter added | `CLAUDE.md`, `.claude/skills/` | Close lifecycle fit through skills. |
+| Antigravity | Adapter added | `.agent/workflows/`, `.agent/skills/`, rules | Validate against the installed Antigravity version. |
+| OpenCode | Adapter added | `AGENTS.md`, `.opencode/commands/`, `.opencode/agents/` | Strong command/agent mapping. |
 
-When you run repo init, it creates/updates local files in that repo:
+See [`docs/platform-differences.md`](docs/platform-differences.md) for known limitations.
 
-- `.codex/skills/<skill>/SKILL.md` (copied from global install)
-- `conductor/templates/...` (copied from global templates; non-destructive)
-- `conductor/skills/catalog.md` (copied from the global catalog; non-destructive)
-- `AGENTS.md` rule line:
-  - `Always run $conductor-status before doing anything else.`
+## Codex Installation
 
-Repo init leaves `.gitignore` unchanged. The generated `conductor/` directory is normal Conductor project state and can be tracked by Git.
+The original Codex install flow is preserved.
 
-### Why there are two styleguide locations?
+### macOS and Linux
 
-- `conductor/templates/code_styleguides/` is the **template library** (the available guides to choose from).
-- `conductor/code_styleguides/` is the **active project guides** created during `$conductor-setup`.
+```bash
+bash ./conductor_for_codex.sh
+```
 
-## Safety (Non-Destructive by Design)
+Then initialize any target repository:
 
-This setup is intentionally non-destructive:
+```bash
+codex_conductor_init
+```
 
-- It never deletes your project files.
-- It updates Conductor-owned files under existing `.codex` and `conductor` folders.
-- It leaves unrelated files in those folders intact.
-- During global install, it may replace an older generated `codex_conductor_init` script so repo init uses the latest update behavior.
-- For `AGENTS.md`:
-  - If missing, create it.
-  - If present, append the required conductor-status rule only if missing.
-- For `.gitignore`:
-  - It is not created or modified by repo init.
-
-In short: current bundled Conductor files are refreshed in place, without deleting unrelated user files.
-
-## Requirements
-
-Windows:
-
-- PowerShell 5.1+
-
-macOS:
-
-- `bash`
-- A shell that can run `$HOME/.local/bin/codex_conductor_init` after install, such as `zsh` or `bash`
-
-Linux:
-
-- `bash`
-
-## Install on Windows
-
-Run from the folder containing `conductor_for_codex.ps1`:
+### Windows
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\conductor_for_codex.ps1
 ```
 
-What each part does:
-
-- `powershell`: starts a new PowerShell process.
-- `-NoProfile`: avoids loading profile scripts for predictable behavior.
-- `-ExecutionPolicy Bypass`: avoids script policy blocking for this run.
-- `-File .\conductor_for_codex.ps1`: runs the installer.
-
-Advanced override:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\conductor_for_codex.ps1 `
-  -CodexHome "$env:USERPROFILE\.codex" `
-  -BinDir "$env:USERPROFILE\.codex\bin" `
-  -SkipPathUpdate
-```
-
-Flags:
-
-- `-CodexHome`: custom global Codex home directory.
-- `-BinDir`: custom install path for `codex_conductor_init.*`.
-- `-SkipPathUpdate`: skip adding the bin directory to user PATH.
-  - Use this only if you intentionally manage PATH yourself.
-  - Recommended default: do not pass `-SkipPathUpdate`, so `codex_conductor_init.cmd` works globally.
-
-## Install on macOS
-
-Run from the folder containing `conductor_for_codex.sh`:
-
-```bash
-bash ./conductor_for_codex.sh
-```
-
-Advanced override:
-
-```bash
-CODEX_HOME="$HOME/.codex" BIN_DIR="$HOME/.local/bin" NO_PATH_HINT=0 bash ./conductor_for_codex.sh
-```
-
-Variables:
-
-- `CODEX_HOME`: custom global Codex home directory.
-- `BIN_DIR`: custom install path for `codex_conductor_init`.
-- `NO_PATH_HINT=0`: print PATH hint if needed.
-
-If `$HOME/.local/bin` is not already on your PATH, add it to your shell profile. For the default macOS shell:
-
-```zsh
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-```
-
-## Install on Linux
-
-```bash
-bash ./conductor_for_codex.sh
-```
-
-Advanced override:
-
-```bash
-CODEX_HOME="$HOME/.codex" BIN_DIR="$HOME/.local/bin" NO_PATH_HINT=0 bash ./conductor_for_codex.sh
-```
-
-Variables:
-
-- `CODEX_HOME`: custom global Codex home directory.
-- `BIN_DIR`: custom install path for `codex_conductor_init`.
-- `NO_PATH_HINT=0`: print PATH hint if needed.
-
-## Admin / sudo
-
-- Windows: admin is not required.
-  - Installs to your user profile.
-  - Updates user PATH only (not machine PATH).
-- macOS: sudo is not required.
-  - Installs under `$HOME`.
-  - Does not modify your shell profile automatically.
-- Linux: sudo is not required.
-  - Installs under `$HOME`.
-
-## Use It Globally
-
-After global install, open any repo directory and run:
-
-- Windows: `codex_conductor_init.cmd`
-- macOS: `codex_conductor_init`
-- Linux: `codex_conductor_init`
-
-If PowerShell policy blocks `.ps1` resolution, use:
+Then initialize any target repository:
 
 ```powershell
 codex_conductor_init.cmd
 ```
 
-or run init explicitly:
+Codex repo initialization creates or updates:
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.codex\bin\codex_conductor_init.ps1"
+- `.codex/skills/<skill>/SKILL.md`
+- `conductor/templates/...`
+- `conductor/skills/catalog.md`
+- `AGENTS.md` with the required status rule
+
+It leaves `.gitignore` unchanged.
+
+## Claude Code Installation
+
+Copy the Claude adapter files into the target repository:
+
+```bash
+bash adapters/claude/install.sh /path/to/target-repo
 ```
 
-## Folder Layout
-
-Repo-local after repo init:
+Equivalent manual layout:
 
 ```text
-your-repo/
-  .codex/
-    skills/
-      conductor-setup/
-        SKILL.md
-      conductor-status/
-        SKILL.md
-      conductor-implement/
-        SKILL.md
-      conductor-newTrack/
-        SKILL.md
-      conductor-review/
-        SKILL.md
-      conductor-revert/
-        SKILL.md
-      update-conductor/
-        SKILL.md
-  conductor/
-    templates/
-      workflow.md
-      code_styleguides/
-        *.md
-    skills/
-      catalog.md
-  AGENTS.md
+adapters/claude/CLAUDE.md -> CLAUDE.md
+adapters/claude/.claude/skills/ -> .claude/skills/
 ```
 
-Global install on Windows:
+Use the lifecycle skills:
+
+- `conductor-setup`
+- `conductor-newTrack`
+- `conductor-implement`
+- `conductor-status`
+- `conductor-review`
+- `conductor-revert`
+
+## Antigravity Installation
+
+Copy the Antigravity adapter files into the target repository:
+
+```bash
+bash adapters/antigravity/install.sh /path/to/target-repo
+```
+
+Equivalent manual layout:
 
 ```text
-%USERPROFILE%\.codex\
-  skills\
-    (same 7 skill folders)
-  conductor\
-    templates\
-      workflow.md
-      code_styleguides\
-        *.md
-    skills\
-      catalog.md
-  bin\
-    codex_conductor_init.cmd
-    codex_conductor_init.ps1
+adapters/antigravity/.agent/ -> .agent/
+adapters/antigravity/rules.md -> your Antigravity rule location
 ```
 
-Global install on Linux:
+Use the workflow files under `.agent/workflows/` for the six Conductor lifecycle operations. The Antigravity adapter is intentionally conservative because workflow and rule conventions should be checked against the local Antigravity release.
+
+## OpenCode Installation
+
+Copy the OpenCode adapter files into the target repository:
+
+```bash
+bash adapters/opencode/install.sh /path/to/target-repo
+```
+
+Equivalent manual layout:
 
 ```text
-$HOME/.codex/
-  skills/
-    (same 7 skill folders)
-  conductor/
-    templates/
-      workflow.md
-      code_styleguides/
-        *.md
-    skills/
-      catalog.md
-$HOME/.local/bin/
-  codex_conductor_init
+adapters/opencode/AGENTS.md -> AGENTS.md
+adapters/opencode/.opencode/commands/ -> .opencode/commands/
+adapters/opencode/.opencode/agents/ -> .opencode/agents/
 ```
 
-Global install on macOS:
+Use the `conductor-*` commands for lifecycle operations and the planner, implementer, and reviewer agents for bounded specialist work.
+
+## Shared Core Development
+
+When updating Conductor behavior:
+
+1. Compare against `conductor-core/lifecycle/gemini-commands/`.
+2. Update shared templates or schemas under `conductor-core/`.
+3. Reflect platform-specific changes only in the affected adapter.
+4. Keep root Codex files compatible unless a migration note explicitly says otherwise.
+
+## Existing Codex Layout
+
+The root-level Codex assets remain for compatibility:
 
 ```text
-$HOME/.codex/
-  skills/
-    (same 7 skill folders)
-  conductor/
-    templates/
-      workflow.md
-      code_styleguides/
-        *.md
-    skills/
-      catalog.md
-$HOME/.local/bin/
-  codex_conductor_init
+skills/
+templates/
+conductor_for_codex.sh
+conductor_for_codex.ps1
 ```
 
-## Re-run / Refresh
+The same assets are mirrored in `adapters/codex/` to make the new adapter structure explicit.
 
-Rerunning installer or repo init is safe and idempotent.
+## Legal
 
-- Existing Conductor-owned targets are updated from the bundled files.
-- Known generated init scripts are refreshed so repo init gets the latest behavior.
-- Missing required lines are appended once.
-- Duplicate required lines are avoided.
+License: [Apache License 2.0](LICENSE)

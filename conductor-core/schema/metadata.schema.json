@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://conductor.local/schema/metadata.schema.json",
+  "title": "Conductor Track Metadata",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["track_id", "description", "status", "created_at"],
+  "properties": {
+    "track_id": {
+      "type": "string",
+      "description": "Stable track directory identifier."
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable track description."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "in_progress", "completed", "archived", "reverted"]
+    },
+    "created_at": {
+      "type": "string",
+      "description": "Creation timestamp. ISO 8601 is recommended."
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "Last metadata update timestamp. ISO 8601 is recommended."
+    },
+    "source_platform": {
+      "type": "string",
+      "description": "Adapter that created or last materially updated the track metadata."
+    },
+    "commits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "sha": { "type": "string" },
+          "message": { "type": "string" },
+          "kind": {
+            "type": "string",
+            "enum": ["track_creation", "implementation", "plan_update", "review_fix", "revert", "documentation_sync"]
+          }
+        }
+      }
+    }
+  }
+}
