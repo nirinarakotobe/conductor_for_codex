@@ -73,15 +73,16 @@ Repo init leaves `.gitignore` unchanged. The generated `conductor/` directory is
 This setup is intentionally non-destructive:
 
 - It never deletes your project files.
-- It never overwrites existing repo skill folders under `.codex/skills/<skill>`.
-- During global install, it may replace an older generated `codex_conductor_init` script if that script still contains the obsolete `.gitignore` rule for `conductor/`.
+- It updates Conductor-owned files under existing `.codex` and `conductor` folders.
+- It leaves unrelated files in those folders intact.
+- During global install, it may replace an older generated `codex_conductor_init` script so repo init uses the latest update behavior.
 - For `AGENTS.md`:
   - If missing, create it.
   - If present, append the required conductor-status rule only if missing.
 - For `.gitignore`:
   - It is not created or modified by repo init.
 
-In short: append-only when needed, no destructive replacement.
+In short: current bundled Conductor files are refreshed in place, without deleting unrelated user files.
 
 ## Requirements
 
@@ -294,9 +295,7 @@ $HOME/.local/bin/
 
 Rerunning installer or repo init is safe and idempotent.
 
-- Existing targets are preserved.
-- Known legacy generated init scripts are refreshed if they still add `conductor/` to `.gitignore`.
+- Existing Conductor-owned targets are updated from the bundled files.
+- Known generated init scripts are refreshed so repo init gets the latest behavior.
 - Missing required lines are appended once.
 - Duplicate required lines are avoided.
-
-If you want to refresh one specific repo-local skill folder, remove only that folder and rerun repo init.

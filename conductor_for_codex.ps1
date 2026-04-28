@@ -5,12 +5,13 @@
 .DESCRIPTION
   Non-destructive by default:
   - Does NOT delete files.
-  - Does NOT overwrite existing skill folders or init scripts.
+  - Updates Conductor-owned files in existing install folders.
 
   Installs into your user profile (no admin required):
   - Skills: %USERPROFILE%\.codex\skills\<skill>\SKILL.md
   - Init cmd: %USERPROFILE%\.codex\bin\codex_conductor_init.cmd
   - Init ps1: %USERPROFILE%\.codex\bin\codex_conductor_init.ps1
+  Existing generated init scripts are refreshed; unknown custom scripts are preserved.
 
   Adds <bin> to the user PATH unless -SkipPathUpdate is set.
 
@@ -92,22 +93,26 @@ foreach ($name in $skillNames) {
 
   $dstDir = Join-Path (Join-Path $CodexHome 'skills') $name
   $dstFile = Join-Path $dstDir 'SKILL.md'
-
-  if (Test-Path $dstDir) {
-    Write-Host "  Exists, skipping: $dstDir" -ForegroundColor Gray
-    continue
-  }
+  $skillAlreadyInstalled = Test-Path $dstFile
 
   Ensure-Dir $dstDir
   Copy-Item -Path $srcFile -Destination $dstFile -Force
-  Write-Host "  Installed: $dstDir" -ForegroundColor Green
+  if ($skillAlreadyInstalled) {
+    Write-Host "  Updated: $dstDir" -ForegroundColor Green
+  } else {
+    Write-Host "  Installed: $dstDir" -ForegroundColor Green
+  }
 }
 
-# Install Conductor templates (skip if destination exists)
+# Install or update Conductor templates. This overwrites bundled template files
+# but leaves unrelated files in the destination intact.
 if (Test-Path $bundledTemplatesRoot) {
   $dstTemplatesRoot = Join-Path $CodexHome 'conductor\templates'
   if (Test-Path $dstTemplatesRoot) {
-    Write-Host "  Exists, skipping templates: $dstTemplatesRoot" -ForegroundColor Gray
+    Ensure-Dir $dstTemplatesRoot
+    Copy-Item -Recurse -Force -Path (Join-Path $bundledTemplatesRoot '*') -Destination $dstTemplatesRoot
+    Get-ChildItem -Path $dstTemplatesRoot -Filter '.DS_Store' -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Force
+    Write-Host "  Updated templates: $dstTemplatesRoot" -ForegroundColor Green
   } else {
     Ensure-Dir $dstTemplatesRoot
     Copy-Item -Recurse -Force -Path (Join-Path $bundledTemplatesRoot '*') -Destination $dstTemplatesRoot
@@ -118,13 +123,15 @@ if (Test-Path $bundledTemplatesRoot) {
   Write-Host "  Missing bundled templates directory (skipping): $bundledTemplatesRoot" -ForegroundColor Yellow
 }
 
-# Install Conductor skill catalog (skip if destination exists)
+# Install or update Conductor skill catalog.
 $catalogSrc = Join-Path $bundledSkillsRoot 'catalog.md'
 if (Test-Path $catalogSrc) {
   $catalogDstDir = Join-Path $CodexHome 'conductor\skills'
   $catalogDst = Join-Path $catalogDstDir 'catalog.md'
   if (Test-Path $catalogDst) {
-    Write-Host "  Exists, skipping skill catalog: $catalogDst" -ForegroundColor Gray
+    Ensure-Dir $catalogDstDir
+    Copy-Item -Path $catalogSrc -Destination $catalogDst -Force
+    Write-Host "  Updated skill catalog: $catalogDst" -ForegroundColor Green
   } else {
     Ensure-Dir $catalogDstDir
     Copy-Item -Path $catalogSrc -Destination $catalogDst -Force
@@ -178,7 +185,9 @@ foreach ($name in $skillNames) {
 
   $dst = Join-Path $dstSkillsRoot $name
   if (Test-Path $dst) {
-    Write-Host "  Exists, skipping: .codex\skills\$name" -ForegroundColor Gray
+    Ensure-Dir $dst
+    Copy-Item -Recurse -Force -Path (Join-Path $src '*') -Destination $dst
+    Write-Host "  Updated: .codex\skills\$name" -ForegroundColor Green
     continue
   }
 
@@ -190,7 +199,10 @@ $srcTemplatesRoot = Join-Path $CodexHome 'conductor\templates'
 $dstTemplatesRoot = Join-Path $RepoRoot 'conductor\templates'
 if (Test-Path $srcTemplatesRoot) {
   if (Test-Path $dstTemplatesRoot) {
-    Write-Host "  Exists, skipping: conductor\\templates" -ForegroundColor Gray
+    Ensure-Dir $dstTemplatesRoot
+    Copy-Item -Recurse -Force -Path (Join-Path $srcTemplatesRoot '*') -Destination $dstTemplatesRoot
+    Get-ChildItem -Path $dstTemplatesRoot -Filter '.DS_Store' -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Force
+    Write-Host "  Updated: conductor\\templates" -ForegroundColor Green
   } else {
     Ensure-Dir $dstTemplatesRoot
     Copy-Item -Recurse -Force -Path (Join-Path $srcTemplatesRoot '*') -Destination $dstTemplatesRoot
@@ -206,7 +218,9 @@ $dstCatalogDir = Join-Path $RepoRoot 'conductor\skills'
 $dstCatalog = Join-Path $dstCatalogDir 'catalog.md'
 if (Test-Path $srcCatalog) {
   if (Test-Path $dstCatalog) {
-    Write-Host "  Exists, skipping: conductor\\skills\\catalog.md" -ForegroundColor Gray
+    Ensure-Dir $dstCatalogDir
+    Copy-Item -Path $srcCatalog -Destination $dstCatalog -Force
+    Write-Host "  Updated: conductor\\skills\\catalog.md" -ForegroundColor Green
   } else {
     Ensure-Dir $dstCatalogDir
     Copy-Item -Path $srcCatalog -Destination $dstCatalog -Force
@@ -250,9 +264,9 @@ $initCmdPath = Join-Path $BinDir 'codex_conductor_init.cmd'
 $shouldInstallInitPs1 = -not (Test-Path $initPs1Path)
 if (-not $shouldInstallInitPs1) {
   $existingInit = Get-Content -Raw -Path $initPs1Path
-  if ($existingInit -match 'Ensured \.gitignore contains conductor/' -or $existingInit -match 'conductor/ ignore exists') {
+  if ($existingInit -match 'Ensured \.gitignore contains conductor/' -or $existingInit -match 'conductor/ ignore exists' -or $existingInit -match 'codex_conductor_init \(Conductor for Codex\)') {
     $shouldInstallInitPs1 = $true
-    Write-Host "  Updating legacy init script: $initPs1Path" -ForegroundColor Yellow
+    Write-Host "  Updating generated init script: $initPs1Path" -ForegroundColor Yellow
   }
 }
 
@@ -263,9 +277,18 @@ if ($shouldInstallInitPs1) {
   Write-Host "  Exists, skipping: $initPs1Path" -ForegroundColor Gray
 }
 
-if (-not (Test-Path $initCmdPath)) {
+$shouldInstallInitCmd = -not (Test-Path $initCmdPath)
+if (-not $shouldInstallInitCmd) {
+  $existingCmd = Get-Content -Raw -Path $initCmdPath
+  if ($existingCmd -match 'codex_conductor_init: missing "%PS_SCRIPT%"') {
+    $shouldInstallInitCmd = $true
+    Write-Host "  Updating generated cmd shim: $initCmdPath" -ForegroundColor Yellow
+  }
+}
+
+if ($shouldInstallInitCmd) {
   Set-Content -Path $initCmdPath -Value $initCmd -Encoding ASCII
-  Write-Host "  Created: $initCmdPath" -ForegroundColor Green
+  Write-Host "  Installed: $initCmdPath" -ForegroundColor Green
 } else {
   Write-Host "  Exists, skipping: $initCmdPath" -ForegroundColor Gray
 }
